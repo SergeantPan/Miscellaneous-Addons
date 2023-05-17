@@ -1,0 +1,18 @@
+hook.Add( "PopulateToolMenu", "BarrelKickersSettingsPrompt", function()
+
+	spawnmenu.AddToolMenuOption( "Options", "Barrel Kickers Settings", "BarrelKickersPromptMenu", "Barrel Kickers Prompt", "", "", function( panel )
+	panel:ClearControls()
+
+	panel:CheckBox( "Enable 'Kick barrel' prompt", "BarrelKickersEnablePrompt" )
+	panel:CheckBox( "Enable 'Kick barrel' text prompt", "BarrelKickersEnablePromptText" )
+	panel:NumSlider( "Prompt X Pos", "BarrelKickersPromptYPos", 0, 1, 2 )
+	panel:Help("Vertical position of the 'Press X to kick the barrel' prompt")
+	panel:NumSlider( "Prompt Y Pos", "BarrelKickersPromptXPos", 0, 1, 2 )
+	panel:Help("Horizontal position of the 'Press X to kick the barrel' prompt")
+	panel:CheckBox( "Enable 'Kick barrel' icon prompt", "BarrelKickersEnablePromptIcon" )
+	panel:NumSlider( "Icon X Pos", "BarrelKickersIconYPos", 0, 1, 2 )
+	panel:Help("Vertical position of the kick barrel icon")
+	panel:NumSlider( "Icon Y Pos", "BarrelKickersIconXPos", 0, 1, 2 )
+	panel:Help("Horizontal position of the kick barrel icon")
+end)
+end)
