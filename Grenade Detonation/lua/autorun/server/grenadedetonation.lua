@@ -11,6 +11,7 @@ CreateConVar("DetonationDetExploDamage", 1, 128, "Grenades can be detonated by e
 CreateConVar("DetonationDetAnyDamage", 0, 128, "Grenades can be detonated by ANY type of damage. 1 = Yes, 0 = No")
 CreateConVar("DetonationDetDamage", 7, 128, "Damage required for a grenade to detonate. Default is 7")
 CreateConVar("DetonationDetChance", 100, 128, "Chance for a grenade to detonate from damage. Percentage chance")
+CreateConVar("DetonationDetFragile", 0, 128, "Live grenades will always detonate from bullet damage, regardless of actual damage dealt. 1 = Yes, 0 = No")
 
 CreateConVar("DetonationArmEnabled", 1, 128, "Enable/Disable the grenade arming function.")
 
@@ -62,7 +63,7 @@ end
 end
 end
 
-if dmginfo:GetDamage() > GetConVar("DetonationDetDamage"):GetInt() then
+if dmginfo:GetDamage() > GetConVar("DetonationDetDamage"):GetInt() or (GetConVar("DetonationDetFragile"):GetBool() and dmginfo:IsDamageType(DMG_BULLET)) then
 
 if (GrenadeDebug or target:GetClass() == "weapon_frag") and IsValid(target) then
 
