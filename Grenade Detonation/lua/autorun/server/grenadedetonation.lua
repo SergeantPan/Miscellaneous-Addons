@@ -116,7 +116,7 @@ end
 local GrenadeAttach = ents.Create("prop_physics")
 GrenadeAttach:SetModel(HitboxModel)
 GrenadeAttach:SetAngles(ent:GetAngles())
-GrenadeAttach:SetPos(ent:WorldSpaceCenter())
+GrenadeAttach:SetPos(ent:GetPos())
 GrenadeAttach:SetParent(ent)
 GrenadeAttach:SetCollisionGroup(11)
 GrenadeAttach:SetColor(Color(0,0,0,0))

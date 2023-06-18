@@ -8,6 +8,8 @@ hook.Add( "PopulateToolMenu", "GrenadeDetonationSettingsNPCs", function()
 
 	panel:NumSlider( "Grenade Drop Chance", "GrenadeCarryChance", 0, 100, 0 )
 	panel:Help("Chance for a damanged NPC to drop a grenade.")
+	panel:CheckBox( "Prevent Elite Grenade Drops", "GrenadeCarryNoElite" )
+	panel:Help( "Combine Elite's will not drop grenades when damaged." )
 	panel:CheckBox( "Prevent Grenade Dupes", "GrenadeCarryNoDupes" )
 	panel:Help( "NPC's who have already dropped a grenade cannot drop another" )
 	local HitboxChoice = panel:ComboBox("Hitbox Setting", "GrenadeCarryHitbox")
