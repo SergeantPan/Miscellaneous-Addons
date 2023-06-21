@@ -7,7 +7,7 @@ hook.Add( "PopulateToolMenu", "GrenadeDetonationSettingsNPCs", function()
 	panel:Help( "A feature where Combine Soldiers that are shot in the stomach or chest can drop live grenades." )
 
 	panel:NumSlider( "Grenade Drop Chance", "GrenadeCarryChance", 0, 100, 0 )
-	panel:Help("Chance for a damanged NPC to drop a grenade.")
+	panel:Help("Chance for a damaged NPC to drop a grenade.")
 	panel:CheckBox( "Prevent Elite Grenade Drops", "GrenadeCarryNoElite" )
 	panel:Help( "Combine Elite's will not drop grenades when damaged." )
 	panel:CheckBox( "Prevent Grenade Dupes", "GrenadeCarryNoDupes" )

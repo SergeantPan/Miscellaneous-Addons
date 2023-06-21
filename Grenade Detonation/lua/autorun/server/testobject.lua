@@ -40,10 +40,52 @@ TestHitbox:Spawn()
 
 end)
 
+concommand.Add("DetonationTestObject2", function(ply)
+
+if GetConVar("SMGDetonationHitboxType"):GetInt() == 1 then
+HitboxModel2 = "models/dav0r/hoverball.mdl"
+elseif GetConVar("SMGDetonationHitboxType"):GetInt() == 2 then
+HitboxModel2 = "models/hunter/blocks/cube025x025x025.mdl"
+elseif GetConVar("SMGDetonationHitboxType"):GetInt() == 3 then
+HitboxModel2 = "models/Items/AR2_Grenade.mdl"
+elseif GetConVar("SMGDetonationHitboxType"):GetInt() == 4 and util.IsValidModel(GetConVar("SMGDetonationHitboxModel"):GetString()) then
+HitboxModel2 =  GetConVar("SMGDetonationHitboxModel"):GetString()
+else
+HitboxModel2 = "models/dav0r/hoverball.mdl"
+end
+
+for _,TestObjectExists2 in pairs(ents.FindByClass("prop_physics")) do
+if TestObjectExists2:GetName() == "Test Object 2" and IsValid(TestObjectExists2) then
+	TestObjectExists2:Remove()
+end
+end
+
+local TestObject2 = ents.Create("prop_physics")
+local TestHitbox2 = ents.Create("prop_physics")
+
+TestObject2:SetModel("models/Items/AR2_Grenade.mdl")
+TestObject2:SetPos(ply:GetEyeTrace().HitPos + Vector(0,0,5))
+TestObject2:SetName("Test Object 2")
+TestObject2:Spawn()
+
+TestHitbox2:SetModel(HitboxModel2)
+TestHitbox2:SetPos(TestObject2:GetPos())
+TestHitbox2:SetAngles(TestObject2:GetAngles())
+TestHitbox2:SetParent(TestObject2)
+TestHitbox2:SetCollisionGroup(11)
+TestHitbox2:SetRenderMode( RENDERMODE_TRANSCOLOR )
+TestHitbox2:SetColor(Color(0,255,0,255))
+TestHitbox2:DrawShadow(false)
+TestHitbox2:SetMaterial("models/wireframe")
+TestHitbox2:SetName("Target Object 2")
+TestHitbox2:Spawn()
+
+end)
+
 concommand.Add("DetonationDeleteObject", function()
 
 for _,TestObjectFound in pairs(ents.FindByClass("prop_physics")) do
-if TestObjectFound:GetName() == "Test Object" and IsValid(TestObjectFound) then
+if (TestObjectFound:GetName() == "Test Object" or TestObjectFound:GetName() == "Test Object 2") and IsValid(TestObjectFound) then
 	TestObjectFound:Remove()
 local FunnyDetonation = ents.Create( "env_explosion" )
 	FunnyDetonation:SetPos(TestObjectFound:GetPos())
@@ -57,9 +99,10 @@ end
 end
 end)
 
-hook.Add( "PostEntityTakeDamage", "FunWithTesting", function( target, dmginfo )
+hook.Add( "EntityTakeDamage", "FunWithTesting", function( target, dmginfo )
 
 local GrenadeTest = (target:GetClass() == "prop_physics" and target:GetName() == "Target Object")
+local SMGGrenadeTest = (target:GetClass() == "prop_physics" and target:GetName() == "Target Object 2")
 
 if GrenadeTest then
 
@@ -67,9 +110,7 @@ if dmginfo:GetDamage() < GetConVar("DetonationDetDamage"):GetInt() and dmginfo:G
 
 target:SetColor(Color(255,255,0,255))
 
-if IsValid(target) then
-timer.Simple(2, function() target:SetColor(Color(0,255,0,255)) end)
-end
+timer.Simple(2, function() if IsValid(target) then target:SetColor(Color(0,255,0,255)) end end)
 
 end
 
@@ -77,9 +118,19 @@ if dmginfo:GetDamage() > GetConVar("DetonationDetDamage"):GetInt() then
 
 target:SetColor(Color(255,0,0,255))
 
-if IsValid(target) then
-timer.Simple(2, function() target:SetColor(Color(0,255,0,255)) end)
+timer.Simple(2, function() if IsValid(target) then target:SetColor(Color(0,255,0,255)) end end)
+
 end
+
+end
+
+if SMGGrenadeTest then
+
+if dmginfo:GetDamage() > GetConVar("DetonationDetDamage"):GetInt() then
+
+target:SetColor(Color(255,0,0,255))
+
+timer.Simple(2, function() if IsValid(target) then target:SetColor(Color(0,255,0,255)) end end)
 
 end
 
