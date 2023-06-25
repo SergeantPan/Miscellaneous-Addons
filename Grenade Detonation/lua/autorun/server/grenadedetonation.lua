@@ -149,14 +149,14 @@ if GetConVar("SMGGrenDetonation"):GetBool() then
 
 if ent:GetClass() == "grenade_ar2" and IsValid(ent) then
 
-if GetConVar("DetonationHitboxType"):GetInt() == 1 then
+if GetConVar("SMGDetonationHitboxType"):GetInt() == 1 then
 HitboxModel = "models/dav0r/hoverball.mdl"
-elseif GetConVar("DetonationHitboxType"):GetInt() == 2 then
+elseif GetConVar("SMGDetonationHitboxType"):GetInt() == 2 then
 HitboxModel = "models/hunter/blocks/cube025x025x025.mdl"
-elseif GetConVar("DetonationHitboxType"):GetInt() == 3 then
+elseif GetConVar("SMGDetonationHitboxType"):GetInt() == 3 then
 HitboxModel = "models/Items/AR2_Grenade.mdl"
-elseif GetConVar("DetonationHitboxType"):GetInt() == 4 and util.IsValidModel(GetConVar("DetonationHitboxModel"):GetString()) then
-HitboxModel =  GetConVar("DetonationHitboxModel"):GetString()
+elseif GetConVar("SMGDetonationHitboxType"):GetInt() == 4 and util.IsValidModel(GetConVar("SMGDetonationHitboxModel"):GetString()) then
+HitboxModel =  GetConVar("SMGDetonationHitboxModel"):GetString()
 else
 HitboxModel = "models/dav0r/hoverball.mdl"
 end
