@@ -4,6 +4,8 @@ CreateConVar("GrenadeCarryChance", 20, 128, "Chance for an NPC to drop a live gr
 CreateConVar("GrenadeCarryNoDupes", 1, 128, "Prevent NPC's from dropping multiple grenades")
 CreateConVar("GrenadeCarryHitbox", 1, 128, "Which part of the NPC has to be hit to drop a grenade.\n- 1 = Chest and stomach\n- 2 = Chest\n- 3 = Stomach")
 CreateConVar("GrenadeCarryNoElite", 0, 128, "Prevent Combine Elite's from dropping grenades.")
+CreateConVar("GrenadeCarryBrokenHitgroups", 0, 128, "Workaround for models that do not support chest and stomach hitgroups")
+CreateConVar("GrenadeCarryBrokenHitgroupsPlayer", 0, 128, "Workaround for models that do not support chest and stomach hitgroups")
 
 CreateConVar("GrenadeCarryPlayer", 1, 128, "Enable the Grenade Carry function for players")
 CreateConVar("GrenadeCarryPlayerHeld", 1, 128, "Grenades can also be shot out of a players hand.")
@@ -20,6 +22,12 @@ elseif GetConVar("GrenadeCarryHitbox"):GetInt() == 2 then
 HitboxGroup = {2}
 elseif GetConVar("GrenadeCarryHitbox"):GetInt() == 3 then
 HitboxGroup = {3}
+end
+
+if GetConVar("GrenadeCarryBrokenHitgroups"):GetBool() then
+table.insert(HitboxGroup, 0)
+else
+table.RemoveByValue(HitboxGroup, 0)
 end
 
 if GetConVar("GrenadeCarryEnabled"):GetBool() then
@@ -57,6 +65,12 @@ elseif GetConVar("GrenadeCarryPlayerHitbox"):GetInt() == 2 then
 HitboxGroup = {2}
 elseif GetConVar("GrenadeCarryPlayerHitbox"):GetInt() == 3 then
 HitboxGroup = {3}
+end
+
+if GetConVar("GrenadeCarryBrokenHitgroupsPlayer"):GetBool() then
+table.insert(HitboxGroup, 0)
+else
+table.RemoveByValue(HitboxGroup, 0)
 end
 
 if GetConVar("GrenadeCarryPlayerHeld"):GetBool() and ply:GetActiveWeapon():GetClass() == "weapon_frag" and !table.HasValue(HitboxGroup, "5") then
