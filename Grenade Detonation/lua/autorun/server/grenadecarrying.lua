@@ -1,19 +1,3 @@
-CreateConVar("GrenadeCarryEnabled", 1, 128, "Enable the Grenade Carry function")
-CreateConVar("GrenadeCarryNPC", 1, 128, "Enable the Grenade Carry function for NPC's")
-CreateConVar("GrenadeCarryChance", 20, 128, "Chance for an NPC to drop a live grenade. Value is percentage chance")
-CreateConVar("GrenadeCarryNoDupes", 1, 128, "Prevent NPC's from dropping multiple grenades")
-CreateConVar("GrenadeCarryHitbox", 1, 128, "Which part of the NPC has to be hit to drop a grenade.\n- 1 = Chest and stomach\n- 2 = Chest\n- 3 = Stomach")
-CreateConVar("GrenadeCarryNoElite", 0, 128, "Prevent Combine Elite's from dropping grenades.")
-CreateConVar("GrenadeCarryBrokenHitgroups", 0, 128, "Workaround for models that do not support chest and stomach hitgroups.")
-CreateConVar("GrenadeCarryBrokenHitgroupsPlayer", 0, 128, "Workaround for models that do not support chest and stomach hitgroups.")
-
-CreateConVar("GrenadeCarryPlayer", 1, 128, "Enable the Grenade Carry function for players")
-CreateConVar("GrenadeCarryPlayerHeld", 1, 128, "Grenades can also be shot out of a players hand.")
-CreateConVar("GrenadeCarryPlayerChance", 20, 128, "Chance for a player to drop a live grenade. Value is percentage chance")
-CreateConVar("GrenadeCarryPlayerHitbox", 1, 128, "Which part of the player has to be hit to drop a grenade.\n- 1 = Chest and stomach\n- 2 = Chest\n- 3 = Stomach")
-CreateConVar("GrenadeCarryRequireAmmo", 1, 128, "Player must have ammo for the grenade to drop a grenade.")
-CreateConVar("GrenadeCarryRemoveAmmo", 1, 128, "Remove a grenade from the player when dropping a grenade.")
-
 hook.Add( "ScaleNPCDamage", "ShootableCarriedGrenades", function( npc, hitgroup, dmginfo )
 
 if GetConVar("GrenadeCarryHitbox"):GetInt() == 1 then
@@ -24,13 +8,13 @@ elseif GetConVar("GrenadeCarryHitbox"):GetInt() == 3 then
 HitboxGroup = {3}
 end
 
-if GetConVar("GrenadeCarryBrokenHitgroups"):GetBool() then
+if GetConVar("GrenadeCarryBrokenHitgroups"):GetBool() and dmginfo:IsBulletDamage() then
 table.insert(HitboxGroup, 0)
 else
 table.RemoveByValue(HitboxGroup, 0)
 end
 
-if GetConVar("GrenadeCarryEnabled"):GetBool() then
+if GetConVar("GrenadeCarryEnabled"):GetBool() and GetConVar("GrenadeCarryHitbox"):GetInt() != 0 then
 
 if IsValid(npc) and npc:IsNPC() and npc:GetClass() == "npc_combine_s" then
 
@@ -48,6 +32,7 @@ local LiveGrenade = ents.Create( "npc_grenade_frag" )
 
 LiveGrenade:SetPos( npc:WorldSpaceCenter() - (npc:GetForward() * 15) )
 LiveGrenade:SetCollisionGroup(9)
+LiveGrenade:SetOwner(dmginfo:GetAttacker())
 LiveGrenade:Spawn()
 LiveGrenade:GetPhysicsObject():SetVelocity(Vector(math.Rand(-250,250),math.Rand(-250,250),25))
 LiveGrenade:Fire("SetTimer", 3, 0)
@@ -57,9 +42,102 @@ end
 end
 end)
 
+util.AddNetworkString("HideGrenade")
+
+hook.Add( "Think", "ActualGrenadesPly", function()
+
+for _,ply in pairs(player.GetAll()) do
+
+for _,Gren in pairs(ents.FindByClass("prop_physics")) do
+if Gren:GetName() == "CarriedGrenade" and Gren:GetOwner():IsPlayer() and Gren:GetOwner() == ply then
+net.Start("HideGrenade")
+net.WriteEntity(Gren)
+net.Send(ply)
+end
+if Gren:GetName() == "CarriedGrenade" and Gren:GetOwner():IsPlayer() and Gren:GetOwner() != ply then
+if !IsValid(Gren:GetOwner()) or Gren:GetOwner():GetAmmoCount(10) == 0 or (Gren:GetOwner():GetActiveWeapon():IsWeapon() and Gren:GetOwner():GetActiveWeapon():GetClass() == "weapon_frag" and Gren:GetOwner():GetAmmoCount(10) < 2) then
+Gren:SetNoDraw(true)
+else
+Gren:SetNoDraw(false)
+end
+if !GetConVar("GrenadeCarryPhysicalPly"):GetBool() then
+Gren:Remove()
+Gren:GetOwner():SetNWBool("CarryingGrenade", false)
+end
+end
+end
+
+if GetConVar("GrenadeCarryPhysicalPly"):GetBool() then
+
+if !IsValid(ply) or !ply:Alive() then return end
+Setup = ply:WorldSpaceCenter() - ply:GetForward()
+
+if GetConVar("GrenadeCarrySidePlayer"):GetInt() == 1 then
+PlyGrenadePos = Setup + ply:GetRight() * 8
+else
+PlyGrenadePos = Setup - ply:GetRight() * 8
+end
+
+if ply:GetAmmoCount(10) > 0 and ply:GetNWBool("CarryingGrenade", false) == false then
+ActualGrenade = ents.Create("prop_physics")
+ActualGrenade:SetMoveType(MOVETYPE_NONE)
+ActualGrenade:SetModel("models/Items/grenadeAmmo.mdl")
+ActualGrenade:FollowBone(ply, 1)
+ActualGrenade:SetPos(PlyGrenadePos)
+ActualGrenade:SetAngles(ply:GetAngles() + Angle(90,0,0))
+ActualGrenade:SetCollisionGroup(1)
+ActualGrenade:SetName("CarriedGrenade")
+ActualGrenade:Spawn()
+ActualGrenade:SetOwner(ply)
+ply:SetNWBool("CarryingGrenade", true)
+end
+
+end
+
+end
+
+end)
+
+hook.Add( "OnEntityCreated", "ActualGrenades", function(entity)
+
+if entity:IsNPC() and entity:GetClass() == "npc_combine_s" then
+
+if GetConVar("GrenadeCarryPhysical"):GetBool() then
+
+if GetConVar("GrenadeCarryNoElite"):GetBool() and entity:GetModel() == "models/combine_super_soldier.mdl" then return end
+
+timer.Simple(0.5, function()
+if !IsValid(entity) then return end
+Setup = entity:WorldSpaceCenter() - entity:GetForward()
+
+if GetConVar("GrenadeCarrySide"):GetInt() == 1 then
+GrenadePos = Setup + entity:GetRight() * 9
+else
+GrenadePos = Setup - entity:GetRight() * 9
+end
+
+ActualGrenade = ents.Create("prop_physics")
+ActualGrenade:SetMoveType(MOVETYPE_NONE)
+ActualGrenade:SetModel("models/Items/grenadeAmmo.mdl")
+ActualGrenade:FollowBone(entity, 1)
+ActualGrenade:SetPos(GrenadePos)
+ActualGrenade:SetAngles(entity:GetAngles() + Angle(90,0,0))
+ActualGrenade:SetCollisionGroup(1)
+ActualGrenade:SetName("CarriedGrenade")
+ActualGrenade:SetOwner(entity)
+ActualGrenade:Spawn()
+end)
+end
+
+end
+
+end)
+
 hook.Add( "ScalePlayerDamage", "ShootableCarriedGrenades", function( ply, hitgroup, dmginfo )
 
-if GetConVar("GrenadeCarryPlayerHitbox"):GetInt() == 1 then
+if GetConVar("GrenadeCarryPlayerHitbox"):GetInt() == 0 then
+HitboxGroup = {}
+elseif GetConVar("GrenadeCarryPlayerHitbox"):GetInt() == 1 then
 HitboxGroup = {2, 3}
 elseif GetConVar("GrenadeCarryPlayerHitbox"):GetInt() == 2 then
 HitboxGroup = {2}
@@ -67,20 +145,32 @@ elseif GetConVar("GrenadeCarryPlayerHitbox"):GetInt() == 3 then
 HitboxGroup = {3}
 end
 
-if GetConVar("GrenadeCarryBrokenHitgroupsPlayer"):GetBool() then
+if GetConVar("GrenadeCarryBrokenHitgroupsPlayer"):GetBool() and dmginfo:IsBulletDamage() then
 table.insert(HitboxGroup, 0)
 else
 table.RemoveByValue(HitboxGroup, 0)
 end
 
-if GetConVar("GrenadeCarryPlayerHeld"):GetBool() and ply:GetActiveWeapon():GetClass() == "weapon_frag" and !table.HasValue(HitboxGroup, "5") then
-table.insert(HitboxGroup, 5)
-end
-if !GetConVar("GrenadeCarryPlayerHeld"):GetBool() or ply:GetActiveWeapon():GetClass() != "weapon_frag" then
-table.RemoveByValue(HitboxGroup, 5)
+if GetConVar("GrenadeCarryPlayer"):GetBool() and GetConVar("GrenadeCarryPlayerHeld"):GetBool() and ply:GetActiveWeapon():IsWeapon() and ply:GetActiveWeapon():GetClass() == "weapon_frag" and hitgroup == 5 and GetConVar("GrenadeCarryPlayerChance"):GetInt() > math.Rand(1, 100) and ply:GetAmmoCount(10) > 0 then
+
+ply:EmitSound("physics/metal/metal_sheet_impact_bullet2.wav")
+
+local LiveGrenade = ents.Create( "npc_grenade_frag" )
+
+LiveGrenade:SetPos( ply:GetBonePosition(ply:LookupBone("ValveBiped.Bip01_R_Hand")) )
+LiveGrenade:SetCollisionGroup(9)
+LiveGrenade:SetOwner(dmginfo:GetAttacker())
+LiveGrenade:Spawn()
+LiveGrenade:GetPhysicsObject():SetVelocity(Vector(math.Rand(-250,250),math.Rand(-250,250),25))
+LiveGrenade:Fire("SetTimer", 3, 0)
+
+if GetConVar("GrenadeCarryRemoveAmmo"):GetBool() then
+ply:RemoveAmmo(1, 10)
 end
 
-if GetConVar("GrenadeCarryPlayer"):GetBool() then
+end
+
+if GetConVar("GrenadeCarryPlayer"):GetBool() and GetConVar("GrenadeCarryPlayerHitbox"):GetInt() != 0 then
 
 if IsValid(ply) and ply:IsPlayer() then
 
@@ -94,12 +184,9 @@ ply:EmitSound("physics/metal/metal_sheet_impact_bullet2.wav")
 
 local LiveGrenade = ents.Create( "npc_grenade_frag" )
 
-if Hitgroup != 5 then
 LiveGrenade:SetPos( ply:WorldSpaceCenter() - (ply:GetForward() * 15) )
-else
-LiveGrenade:SetPos( ply:GetBonePosition(11) )
-end
 LiveGrenade:SetCollisionGroup(9)
+LiveGrenade:SetOwner(dmginfo:GetAttacker())
 LiveGrenade:Spawn()
 LiveGrenade:GetPhysicsObject():SetVelocity(Vector(math.Rand(-250,250),math.Rand(-250,250),25))
 LiveGrenade:Fire("SetTimer", 3, 0)

@@ -27,12 +27,12 @@ CreateConVar("DetonationArmDamage", 4, 128, "Damage required for a grenade to ge
 CreateConVar("DetonationArmChance", 100, 128, "Chance for a grenade to get armed from damage. Percentage chance")
 
 hook.Add( "PhysgunPickup", "CantPickItUp", function(ply, ent)
-if (ent:GetName() == "GrenDetEnt" or ent:GetName() == "Target Object" or ent:GetName() == "Target Object 2") then return false
+if ent:GetName() == "GrenDetEnt" or ent:GetName() == "Target Object" or ent:GetName() == "Target Object 2" or ent:GetName() == "CarriedGrenade" then return false
 end
 end)
 
 hook.Add( "AllowPlayerPickup", "CantPickItUp2", function(ply, ent)
-if (ent:GetName() == "GrenDetEnt" or ent:GetName() == "Target Object") and ent:GetParent() != "grenade_ar2" then
+if (ent:GetName() == "GrenDetEnt" or ent:GetName() == "Target Object") and ent:GetParent() != "grenade_ar2" and ent:GetName() != "CarriedGrenade" then
 ply:PickupObject(ent:GetParent())
 end
 end)
@@ -41,7 +41,8 @@ hook.Add( "PostEntityTakeDamage", "ShootableGrenades", function( target, dmginfo
 
 inflictor = dmginfo:GetInflictor()
 
-local GrenadeDebug = (target:GetClass() == "prop_physics" and target:GetName() == "GrenDetEnt")
+local GrenadeDebug = target:GetClass() == "prop_physics" and target:GetName() == "GrenDetEnt"
+local CarryGrenade = target:GetClass() == "prop_physics" and target:GetName() == "CarriedGrenade"
 
 if GetConVar("DetonationArmEnabled"):GetBool() then
 
@@ -49,9 +50,13 @@ if GrenadeDebug and dmginfo:GetDamage() < GetConVar("DetonationArmDamage"):GetIn
 target:GetParent():TakePhysicsDamage(dmginfo)
 end
 
-if target:GetClass() == "weapon_frag" and dmginfo:GetDamage() < GetConVar("DetonationDetDamage"):GetInt() and dmginfo:GetDamage() > GetConVar("DetonationArmDamage"):GetInt() and IsValid(target) then
+if (target:GetClass() == "weapon_frag" or (CarryGrenade and !target:GetOwner():IsPlayer()) or (CarryGrenade and target:GetOwner():IsPlayer() and dmginfo:GetAttacker() != target:GetOwner() and target:GetOwner():GetAmmoCount(10) > 0)) and dmginfo:GetDamage() < GetConVar("DetonationDetDamage"):GetInt() and dmginfo:GetDamage() > GetConVar("DetonationArmDamage"):GetInt() and IsValid(target) then
 
 if (dmginfo:IsDamageType(DMG_BULLET) and GetConVar("DetonationArmBulletDamage"):GetBool()) or (dmginfo:IsExplosionDamage() and GetConVar("DetonationArmExploDamage"):GetBool() and dmginfo:GetAttacker():GetPos():Distance(target:GetPos()) < GetConVar("DetonationRadius"):GetInt() / 2) or (GetConVar("DetonationArmAnyDamage"):GetBool() and (!dmginfo:IsExplosionDamage() or (dmginfo:IsExplosionDamage() and dmginfo:GetAttacker():GetPos():Distance(target:GetPos()) < GetConVar("DetonationRadius"):GetInt() / 2))) then
+
+if target:GetOwner():IsNPC() and target:GetOwner():GetNWBool("HasDroppedGrenade", false) == false and GetConVar("GrenadeCarryNoDupes"):GetBool() then
+target:GetOwner():SetNWBool("HasDroppedGrenade", true)
+end
 
 if math.Rand(1, 100) < GetConVar("DetonationArmChance"):GetInt() then
 
@@ -62,28 +67,55 @@ GrenadeSpawned:SetAngles(target:GetAngles())
 GrenadeSpawned:SetOwner(owner)
 GrenadeSpawned:Spawn()
 GrenadeSpawned:SetHealth(math.huge)
+if CarryGrenade then
+GrenadeSpawned:GetPhysicsObject():SetVelocity(Vector(0,0,0))
+else
 GrenadeSpawned:GetPhysicsObject():SetVelocity(target:GetVelocity())
+end
 GrenadeSpawned:Fire("SetTimer", 3, 0)
 
+if CarryGrenade and target:GetOwner():IsPlayer() then
+if GetConVar("GrenadeCarryRemoveAmmo"):GetBool() then
+target:GetOwner():RemoveAmmo(1, 10)
+end
+end
+
+if !CarryGrenade or (CarryGrenade and target:GetOwner():IsNPC() and GetConVar("GrenadeCarryNoDupes"):GetBool()) then
 target:Remove()
+end
 
 end
 end
 end
 
-if dmginfo:GetDamage() > GetConVar("DetonationDetDamage"):GetInt() or (GetConVar("DetonationDetFragile"):GetBool() and dmginfo:IsDamageType(DMG_BULLET) and GrenadeDebug) then
+if dmginfo:GetDamage() > GetConVar("DetonationDetDamage"):GetInt() or (GetConVar("DetonationDetFragile"):GetBool() and dmginfo:IsDamageType(DMG_BULLET)) then
 
-if (GrenadeDebug or target:GetClass() == "weapon_frag") and IsValid(target) and inflictor:GetClass() != "grenade_ar2" then
+if (GrenadeDebug or (CarryGrenade and !target:GetOwner():IsPlayer()) or (CarryGrenade and target:GetOwner():IsPlayer() and dmginfo:GetAttacker() != target:GetOwner() and target:GetOwner():GetAmmoCount(10) > 0)) and IsValid(target) and inflictor:GetClass() != "grenade_ar2" then
 
 if (dmginfo:IsDamageType(DMG_BULLET) and GetConVar("DetonationDetBulletDamage"):GetBool() and target.DamageTaken == nil) or (dmginfo:IsExplosionDamage() and GetConVar("DetonationDetExploDamage"):GetBool() and target.DamageTaken == nil) or (GetConVar("DetonationDetAnyDamage"):GetBool() and target.DamageTaken == nil) then
 
 if math.Rand(1, 100) < GetConVar("DetonationDetChance"):GetInt() then
 
 target.DamageTaken = true
+
+timer.Simple(1.5, function() if IsValid(target) and target:GetName() == "CarriedGrenade" and target.DamageTaken == true then target.DamageTaken = nil end end)
+
+if !CarryGrenade or (CarryGrenade and target:GetOwner():IsNPC() and GetConVar("GrenadeCarryNoDupes"):GetBool()) then
 target:Remove()
+end
+
+if CarryGrenade and target:GetOwner():IsPlayer() then
+if GetConVar("GrenadeCarryRemoveAmmo"):GetBool() then
+target:GetOwner():RemoveAmmo(1, 10)
+end
+end
 
 if GrenadeDebug then
 target:GetParent():Remove()
+end
+
+if target:GetOwner():IsNPC() and target:GetOwner():GetNWBool("HasDroppedGrenade", false) == false and GetConVar("GrenadeCarryNoDupes"):GetBool() then
+target:GetOwner():SetNWBool("HasDroppedGrenade", true)
 end
 
 local GrenadeDetonation = ents.Create( "env_explosion" )
@@ -182,13 +214,15 @@ hook.Add( "EntityTakeDamage", "SetInflictorLogic", function( target, dmginfo )
 
 inflictor = dmginfo:GetInflictor()
 
-if inflictor:GetClass() == "env_explosion" and inflictor:GetName() == "DetonationExplosion" then
-if IsValid(inflictor:GetOwner()) and inflictor:GetOwner():GetActiveWeapon():IsWeapon() then
-dmginfo:SetInflictor(inflictor:GetOwner():GetActiveWeapon())
+if IsValid(inflictor) and inflictor:GetClass() == "env_explosion" and inflictor:GetName() == "DetonationExplosion" then
+if IsValid(inflictor:GetOwner()) and (inflictor:GetOwner():IsPlayer() or inflictor:GetOwner():IsNPC()) then
+inflictor:SetOwner(inflictor:GetOwner())
+else
+inflictor:SetOwner(inflictor)
 end
 end
 
-if inflictor:GetClass() == "npc_grenade_frag" and IsValid(inflictor:GetOwner()) then
+if IsValid(inflictor) and inflictor:GetClass() == "npc_grenade_frag" and IsValid(inflictor:GetOwner()) then
 dmginfo:SetAttacker(inflictor:GetOwner())
 end
 
