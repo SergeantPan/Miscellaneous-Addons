@@ -104,10 +104,11 @@ if entity:IsNPC() and entity:GetClass() == "npc_combine_s" then
 
 if GetConVar("GrenadeCarryPhysical"):GetBool() then
 
-if GetConVar("GrenadeCarryNoElite"):GetBool() and entity:GetModel() == "models/combine_super_soldier.mdl" then return end
-
 timer.Simple(0.5, function()
 if !IsValid(entity) then return end
+
+if GetConVar("GrenadeCarryNoElite"):GetBool() and entity:GetModel() == "models/combine_super_soldier.mdl" then return end
+
 Setup = entity:WorldSpaceCenter() - entity:GetForward()
 
 if GetConVar("GrenadeCarrySide"):GetInt() == 1 then
