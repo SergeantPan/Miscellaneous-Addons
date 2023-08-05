@@ -24,6 +24,7 @@ if table.HasValue(HitboxGroup, hitgroup) and GetConVar("GrenadeCarryChance"):Get
 
 if npc:GetNWBool("HasDroppedGrenade", false) == false and GetConVar("GrenadeCarryNoDupes"):GetBool() then
 npc:SetNWBool("HasDroppedGrenade", true)
+DisableNades(npc)
 end
 
 npc:EmitSound("physics/metal/metal_sheet_impact_bullet1.wav")
@@ -44,12 +45,10 @@ end)
 
 util.AddNetworkString("HideGrenade")
 
-hook.Add( "Think", "ActualGrenadesPly", function()
-
-for _,ply in pairs(player.GetAll()) do
+hook.Add( "PlayerTick", "ActualGrenadesPly", function(ply)
 
 for _,Gren in pairs(ents.FindByClass("prop_physics")) do
-if Gren:GetName() == "CarriedGrenade" and Gren:GetOwner():IsPlayer() and Gren:GetOwner() == ply then
+if Gren:GetNoDraw() == false and Gren:GetName() == "CarriedGrenade" and Gren:GetOwner():IsPlayer() and Gren:GetOwner() == ply then
 net.Start("HideGrenade")
 net.WriteEntity(Gren)
 net.Send(ply)
@@ -63,7 +62,6 @@ end
 if !GetConVar("GrenadeCarryPhysicalPly"):GetBool() then
 Gren:Remove()
 Gren:GetOwner():SetNWBool("CarryingGrenade", false)
-end
 end
 end
 
@@ -195,4 +193,13 @@ LiveGrenade:Fire("SetTimer", 3, 0)
 end
 end
 end
+
 end)
+
+function DisableNades(npc)
+
+if npc:GetNWBool("HasDroppedGrenade", false) == true and GetConVar("GrenadeCarryDisableNades"):GetBool() then
+npc:SetKeyValue("NumGrenades", 0)
+end
+
+end

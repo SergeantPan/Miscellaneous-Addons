@@ -7,6 +7,10 @@ CreateConVar("GrenadeCarryNoElite", 0, 128, "Prevent Combine Elites from droppin
 CreateConVar("GrenadeCarryBrokenHitgroups", 0, 128, "Workaround for models that do not support chest and stomach hitgroups.")
 CreateConVar("GrenadeCarryBrokenHitgroupsPlayer", 0, 128, "Workaround for models that do not support chest and stomach hitgroups.")
 
+CreateConVar("GrenadeCarryDrop", 1, 128, "Enable NPCs that are carrying grenades to drop one on death")
+CreateConVar("GrenadeCarryDropRequireNade", 1, 128, "NPCs can only drop a grenade if they have not already dropped a grenade. Requires the 'No Dupes' option to be enabled")
+CreateConVar("GrenadeCarryDisableNades", 0, 128, "NPCs that have dropped a grenade can no longer throw grenades. Requires the 'No Dupes' option to be enabled")
+
 CreateConVar("GrenadeCarryPhysical", 0, 128, "Enable NPCs carrying physical grenades on their bodies, which can be shot.")
 CreateConVar("GrenadeCarryPhysicalPly", 0, 128, "Enable Players carrying physical grenades on their bodies, which can be shot.")
 CreateConVar("GrenadeCarrySide", 0, 128, "Which side should the NPCs carried grenade be on?\n- 0 = Left\n- 1 = Right.")

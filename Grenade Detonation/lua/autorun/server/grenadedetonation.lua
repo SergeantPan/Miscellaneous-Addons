@@ -34,6 +34,7 @@ end)
 hook.Add( "AllowPlayerPickup", "CantPickItUp2", function(ply, ent)
 if (ent:GetName() == "GrenDetEnt" or ent:GetName() == "Target Object") and ent:GetParent() != "grenade_ar2" and ent:GetName() != "CarriedGrenade" then
 ply:PickupObject(ent:GetParent())
+return false
 end
 end)
 
@@ -56,6 +57,7 @@ if (dmginfo:IsDamageType(DMG_BULLET) and GetConVar("DetonationArmBulletDamage"):
 
 if target:GetOwner():IsNPC() and target:GetOwner():GetNWBool("HasDroppedGrenade", false) == false and GetConVar("GrenadeCarryNoDupes"):GetBool() then
 target:GetOwner():SetNWBool("HasDroppedGrenade", true)
+DisableNades(target:GetOwner())
 end
 
 if math.Rand(1, 100) < GetConVar("DetonationArmChance"):GetInt() then
@@ -64,7 +66,7 @@ local GrenadeSpawned = ents.Create("npc_grenade_frag")
 
 GrenadeSpawned:SetPos(target:GetPos())
 GrenadeSpawned:SetAngles(target:GetAngles())
-GrenadeSpawned:SetOwner(owner)
+GrenadeSpawned:SetOwner(dmginfo:GetAttacker())
 GrenadeSpawned:Spawn()
 GrenadeSpawned:SetHealth(math.huge)
 if CarryGrenade then
@@ -87,10 +89,13 @@ end
 end
 end
 end
+end
 
-if dmginfo:GetDamage() > GetConVar("DetonationDetDamage"):GetInt() or (GetConVar("DetonationDetFragile"):GetBool() and dmginfo:IsDamageType(DMG_BULLET)) then
+if GetConVar("DetonationEnabled"):GetBool() then
 
-if (GrenadeDebug or (CarryGrenade and !target:GetOwner():IsPlayer()) or (CarryGrenade and target:GetOwner():IsPlayer() and dmginfo:GetAttacker() != target:GetOwner() and target:GetOwner():GetAmmoCount(10) > 0)) and IsValid(target) and inflictor:GetClass() != "grenade_ar2" then
+if (CarryGrenade and dmginfo:GetDamage() > GetConVar("DetonationDetDamage"):GetInt() and (!target:GetOwner():IsPlayer() or (target:GetOwner():IsPlayer() and dmginfo:GetAttacker() != target:GetOwner() and target:GetOwner():GetAmmoCount(10) > 0)))
+or
+(GrenadeDebug and ((GetConVar("DetonationDetFragile"):GetBool() and dmginfo:IsDamageType(DMG_BULLET)) or dmginfo:GetDamage() > GetConVar("DetonationDetDamage"):GetInt())) and IsValid(target) and inflictor:GetClass() != "grenade_ar2" then
 
 if (dmginfo:IsDamageType(DMG_BULLET) and GetConVar("DetonationDetBulletDamage"):GetBool() and target.DamageTaken == nil) or (dmginfo:IsExplosionDamage() and GetConVar("DetonationDetExploDamage"):GetBool() and target.DamageTaken == nil) or (GetConVar("DetonationDetAnyDamage"):GetBool() and target.DamageTaken == nil) then
 
@@ -116,6 +121,7 @@ end
 
 if target:GetOwner():IsNPC() and target:GetOwner():GetNWBool("HasDroppedGrenade", false) == false and GetConVar("GrenadeCarryNoDupes"):GetBool() then
 target:GetOwner():SetNWBool("HasDroppedGrenade", true)
+DisableNades(target:GetOwner())
 end
 
 local GrenadeDetonation = ents.Create( "env_explosion" )
@@ -130,7 +136,6 @@ GrenadeDetonation:SetName("DetonationExplosion")
 GrenadeDetonation:Spawn()
 GrenadeDetonation:Fire( "Explode", 0, 0.1 )
 
-end
 end
 end
 end
