@@ -30,9 +30,13 @@ hook.Add( "PopulateToolMenu", "GrenadeDetonationSettingsNPCs", function()
 	panel:Help( "NPCs will carry physical grenades on their model, which can be shot to trigger arming or detonation." )
 	panel:CheckBox( "NPCs carry grenade on their right", "GrenadeCarrySide" )
 	panel:Help( "Changes the physical grenades position from the left side to the right." )
+	panel:NumSlider( "Physical Grenade Angle", "GrenadeCarryPhysicalAngleNPC", -180, 180, 0 )
+	panel:Help("The angle at which the grenade will spawn in. Default is -90.")
 
 	panel:CheckBox( "NPCs drop a grenade on death", "GrenadeCarryDrop" )
 	panel:Help( "NPCs with grenades will drop one on death." )
+	panel:NumSlider( "Grenade Drop Chance", "GrenadeCarryDropChance", 0, 100, 0 )
+	panel:Help("Chance for a killed NPC to drop a grenade.")
 	panel:CheckBox( "NPCs must have a grenade to drop", "GrenadeCarryDropRequireNade" )
 	panel:Help( "NPCs will not drop a grenade on death if they have already dropped one. Requires the Prevent Grenade Dupes setting to be enabled." )
 	

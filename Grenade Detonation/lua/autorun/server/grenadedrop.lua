@@ -14,6 +14,8 @@ else
 GrenadePos = Setup - npc:GetRight() * 9
 end
 
+if math.random(1, 100) < GetConVar("GrenadeCarryDropChance"):GetInt() then
+
 DroppedNade = ents.Create("weapon_frag")
 
 if GetConVar("GrenadeCarryPhysical"):GetBool() then
@@ -24,6 +26,8 @@ end
 
 DroppedNade:Spawn()
 DroppedNade:SetCollisionGroup(2)
+
+end
 
 end
 

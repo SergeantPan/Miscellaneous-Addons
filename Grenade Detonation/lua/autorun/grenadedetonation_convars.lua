@@ -9,9 +9,12 @@ CreateConVar("GrenadeCarryBrokenHitgroupsPlayer", 0, 128, "Workaround for models
 
 CreateConVar("GrenadeCarryDrop", 1, 128, "Enable NPCs that are carrying grenades to drop one on death")
 CreateConVar("GrenadeCarryDropRequireNade", 1, 128, "NPCs can only drop a grenade if they have not already dropped a grenade. Requires the 'No Dupes' option to be enabled")
+CreateConVar("GrenadeCarryDropChance", 100, 128, "Chance for an NPC to drop a grenade on death. Reduce this chance if  you do not want every single Combine to drop a grenade.")
 CreateConVar("GrenadeCarryDisableNades", 0, 128, "NPCs that have dropped a grenade can no longer throw grenades. Requires the 'No Dupes' option to be enabled")
 
 CreateConVar("GrenadeCarryPhysical", 0, 128, "Enable NPCs carrying physical grenades on their bodies, which can be shot.")
+CreateConVar("GrenadeCarryPhysicalModelBlacklist", "", 128, "List of models that are blacklisted for the physical grenades system.")
+CreateConVar("GrenadeCarryPhysicalAngleNPC", -90, 128, "The angle at which the physical grenade on NPCs should be. Default is -90.")
 CreateConVar("GrenadeCarryPhysicalPly", 0, 128, "Enable Players carrying physical grenades on their bodies, which can be shot.")
 CreateConVar("GrenadeCarrySide", 0, 128, "Which side should the NPCs carried grenade be on?\n- 0 = Left\n- 1 = Right.")
 CreateConVar("GrenadeCarrySidePlayer", 0, 128, "Which side should the Players carried grenade be on?\n- 0 = Left\n- 1 = Right.")

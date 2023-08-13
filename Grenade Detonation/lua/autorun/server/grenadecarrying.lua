@@ -98,6 +98,9 @@ end)
 
 hook.Add( "OnEntityCreated", "ActualGrenades", function(entity)
 
+local ModelBlacklist = string.Split(GetConVar("GrenadeCarryPhysicalModelBlacklist"):GetString(), ", ")
+local GrenAngNPC = GetConVar("GrenadeCarryPhysicalAngleNPC"):GetInt()
+
 if entity:IsNPC() and entity:GetClass() == "npc_combine_s" then
 
 if GetConVar("GrenadeCarryPhysical"):GetBool() then
@@ -106,6 +109,7 @@ timer.Simple(0.5, function()
 if !IsValid(entity) then return end
 
 if GetConVar("GrenadeCarryNoElite"):GetBool() and entity:GetModel() == "models/combine_super_soldier.mdl" then return end
+if table.HasValue(ModelBlacklist, entity:GetModel()) then return end
 
 Setup = entity:WorldSpaceCenter() - entity:GetForward()
 
@@ -120,7 +124,7 @@ ActualGrenade:SetMoveType(MOVETYPE_NONE)
 ActualGrenade:SetModel("models/Items/grenadeAmmo.mdl")
 ActualGrenade:FollowBone(entity, 1)
 ActualGrenade:SetPos(GrenadePos)
-ActualGrenade:SetAngles(entity:GetAngles() + Angle(90,0,0))
+ActualGrenade:SetAngles(entity:GetAngles() + Angle(GrenAngNPC,0,0))
 ActualGrenade:SetCollisionGroup(1)
 ActualGrenade:SetName("CarriedGrenade")
 ActualGrenade:SetOwner(entity)
