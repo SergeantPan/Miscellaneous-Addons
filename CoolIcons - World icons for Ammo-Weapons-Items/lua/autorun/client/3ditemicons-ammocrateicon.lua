@@ -25,7 +25,7 @@ for k, v in pairs (ents.FindByClass("item_ammo_crate")) do
 if IsValid(v) and (v:GetNWBool("Visible", false) == true or XRayVision) then
 
 ammopos = v:WorldSpaceCenter()
-distance = p:GetPos():Distance(v:WorldSpaceCenter())
+distance = p:GetPos():Distance(v:GetPos())
 
 if distance < itemdistance then
 cam.Start3D()
