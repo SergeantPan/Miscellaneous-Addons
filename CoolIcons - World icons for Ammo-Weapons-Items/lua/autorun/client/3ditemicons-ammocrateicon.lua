@@ -1,8 +1,8 @@
-local p = LocalPlayer()
-
 hook.Add( "HUDPaint", "AmmoCrateIcon", function()
 
 if GetConVar("AmmoIcon"):GetBool() then
+
+local p = LocalPlayer()
 
 itemdistance = GetConVar("ItemIconDistance"):GetInt() // Player-Chosen distance
 OutlineEnabled = GetConVar("IconOutlines"):GetBool()
