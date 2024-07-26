@@ -105,7 +105,7 @@ if entity:IsNPC() and entity:GetClass() == "npc_combine_s" then
 
 if GetConVar("GrenadeCarryPhysical"):GetBool() then
 
-timer.Simple(0.5, function()
+timer.Simple(0.01, function()
 if !IsValid(entity) then return end
 
 if GetConVar("GrenadeCarryNoElite"):GetBool() and entity:GetModel() == "models/combine_super_soldier.mdl" then return end
