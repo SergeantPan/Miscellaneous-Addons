@@ -1,6 +1,6 @@
 hook.Add( "OnNPCKilled", "NPCDropNades", function( npc )
 
-if GetConVar("GrenadeCarryDrop"):GetBool() and npc:GetClass() == "npc_combine_s" then
+if GetConVar("GrenadeCarryDrop"):GetBool() and !npc:HasSpawnFlags(131072) then
 
 if !GetConVar("GrenadeCarryDropRequireNade"):GetBool() or (GetConVar("GrenadeCarryDropRequireNade"):GetBool() and npc:GetNWBool("HasDroppedGrenade", false) == false) then
 
